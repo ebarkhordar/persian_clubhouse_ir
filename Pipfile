@@ -6,6 +6,9 @@ name = "pypi"
 [packages]
 django = "*"
 django-environ = "*"
+python-telegram-bot = "*"
+clubhouse-py = "*"
+psycopg2 = "*"
 
 [dev-packages]
 
