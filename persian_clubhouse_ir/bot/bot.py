@@ -27,11 +27,11 @@ from telegram.ext import (
     CallbackContext,
 )
 
-# Enable logging
 from persian_clubhouse_ir.bot.const import Keyboard, MessageText
 from persian_clubhouse_ir.bot.models import Profile
 from persian_clubhouse_ir.settings import env, TIME_ZONE, MY_CLUBHOUSE_USER_ID
 
+# Enable logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
 )

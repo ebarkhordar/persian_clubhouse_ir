@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from persian_clubhouse_ir.bot.models import Profile
+
+admin.site.register(Profile)
