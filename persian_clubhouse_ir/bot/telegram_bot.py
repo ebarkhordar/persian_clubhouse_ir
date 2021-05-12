@@ -2,17 +2,6 @@
 # pylint: disable=C0116
 # This program is dedicated to the public domain under the CC0 license.
 
-"""
-First, a few callback functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-Example of a bot-user conversation using ConversationHandler.
-Send /start to initiate the conversation.
-Press Ctrl-C on the command line or send a signal to the process to stop the
-bot.
-"""
 import logging
 from typing import Dict
 
@@ -38,7 +27,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-CHOOSING, PHONE_NUMBER, INSTAGRAM_USERNAME, CLUBHOUSE_VERIFICATION_CODE, TYPING_REPLY, TYPING_CHOICE = range(5)
+CHOOSING, PHONE_NUMBER, INSTAGRAM_USERNAME, CLUBHOUSE_VERIFICATION_CODE, TYPING_REPLY, TYPING_CHOICE = range(6)
 
 reply_keyboard = [
     [Keyboard.update_instagram_account],
@@ -91,14 +80,14 @@ def get_clubhouse_verification_code(update: Update, context: CallbackContext) ->
     telegram_name = telegram_user.name
     phone_number = context.user_data['phone_number']
     instagram_username = context.user_data['instagram_username']
-    client = clubhouse.complete_phone_number_auth(phone_number, verification_code)
-    clubhouse_user_id = None
-    clubhouse_username = None
-    result = client.me(timezone_identifier=TIME_ZONE)
-    if result.get('success') is True:
-        clubhouse_user_id = result.get('user_id')
-        clubhouse_username = result.get('username')
-    Profile.objects.update_or_create(
+    result = clubhouse.complete_phone_number_auth(phone_number, verification_code)
+    if result.get('success') is False:
+        update.message.reply_text(MessageText.failure_instagram_username_update)
+        return ConversationHandler.END
+    user_profile = result.get("user_profile")
+    clubhouse_user_id = user_profile.get('user_id')
+    clubhouse_username = user_profile.get('username')
+    profile, created = Profile.objects.update_or_create(
         telegram_user_id=telegram_user_id,
         defaults={
             'telegram_username': telegram_username,
@@ -106,17 +95,19 @@ def get_clubhouse_verification_code(update: Update, context: CallbackContext) ->
             'clubhouse_user_id': clubhouse_user_id,
             'clubhouse_username': clubhouse_username,
             'clubhouse_phone_number': phone_number,
-            'clubhouse_auth_token': client['auth_token'],
+            'clubhouse_auth_token': result['auth_token'],
             'instagram_username': instagram_username,
         }
     )
-    client.update_instagram_username(instagram_username)
+
+    new_clubhouse = Clubhouse(user_id=str(profile.clubhouse_user_id), user_token=profile.clubhouse_auth_token)
+    new_clubhouse.update_instagram_username(instagram_username)
     if result.get('success') is True:
-        client.follow(user_id=MY_CLUBHOUSE_USER_ID)
+        new_clubhouse.follow(user_id=MY_CLUBHOUSE_USER_ID)
         update.message.reply_text(MessageText.success_instagram_username_update)
     else:
         update.message.reply_text(MessageText.failure_instagram_username_update)
-    return TYPING_REPLY
+    return ConversationHandler.END
 
 
 def about_us(update: Update, _: CallbackContext) -> int:
@@ -155,17 +146,21 @@ def run_bot() -> None:
                 ),
             ],
             PHONE_NUMBER: [
-                MessageHandler(Filters.text, get_phone_number, )
+                CommandHandler('start', start),
+                MessageHandler(Filters.text, get_phone_number, ),
             ],
             INSTAGRAM_USERNAME: [
-                MessageHandler(Filters.text, get_instagram_username, )
+                CommandHandler('start', start),
+                MessageHandler(Filters.text, get_instagram_username, ),
             ],
             CLUBHOUSE_VERIFICATION_CODE: [
-                MessageHandler(Filters.text, get_clubhouse_verification_code, )
+                CommandHandler('start', start),
+                MessageHandler(Filters.text, get_clubhouse_verification_code, ),
             ],
 
         },
         fallbacks=[MessageHandler(Filters.regex('^Done$'), done)],
+
     )
 
     dispatcher.add_handler(conv_handler)
