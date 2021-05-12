@@ -5,7 +5,9 @@
 import logging
 from typing import Dict
 
+import phonenumbers
 from clubhouse.clubhouse import Clubhouse
+from phonenumbers import carrier, number_type
 from telegram import ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import (
     Updater,
@@ -18,7 +20,7 @@ from telegram.ext import (
 
 from persian_clubhouse_ir.bot.const import Keyboard, MessageText
 from persian_clubhouse_ir.bot.models import Profile
-from persian_clubhouse_ir.settings import env, TIME_ZONE, MY_CLUBHOUSE_USER_ID
+from persian_clubhouse_ir.settings import env, MY_CLUBHOUSE_USER_ID
 
 # Enable logging
 logging.basicConfig(
@@ -54,11 +56,22 @@ def start(update: Update, _: CallbackContext) -> int:
 
 def instagram_account(update: Update, _: CallbackContext) -> int:
     update.message.reply_text(MessageText.enter_your_phone_number)
+    update.message.reply_text(MessageText.price_message)
     return PHONE_NUMBER
 
 
 def get_phone_number(update: Update, context: CallbackContext) -> int:
     phone_number = update.message.text
+    if not phone_number.replace('+', '').isdigit():
+        update.message.reply_text(MessageText.not_valid_phone_number)
+        update.message.reply_text(MessageText.enter_your_phone_number)
+        return PHONE_NUMBER
+    phone_number = phonenumbers.parse(phone_number, "IR")
+    if phonenumbers.is_possible_number(phone_number) is False:
+        update.message.reply_text(MessageText.not_valid_phone_number)
+        update.message.reply_text(MessageText.enter_your_phone_number)
+        return PHONE_NUMBER
+    phone_number = phonenumbers.format_number(phone_number, phonenumbers.PhoneNumberFormat.E164)
     context.user_data['phone_number'] = phone_number
     clubhouse.start_phone_number_auth(phone_number)
     update.message.reply_text(MessageText.enter_your_instagram_username)
@@ -126,6 +139,15 @@ def done(update: Update, context: CallbackContext) -> int:
     return ConversationHandler.END
 
 
+def cancel(update: Update, context: CallbackContext) -> int:
+    user_data = context.user_data
+    update.message.reply_text(MessageText.cancel,
+                              reply_markup=ReplyKeyboardRemove(),
+                              )
+    user_data.clear()
+    return ConversationHandler.END
+
+
 def run_bot() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater(env.str("TELEGRAM_BOT_TOKEN"))
@@ -146,15 +168,15 @@ def run_bot() -> None:
                 ),
             ],
             PHONE_NUMBER: [
-                CommandHandler('start', start),
+                CommandHandler('cancel', cancel),
                 MessageHandler(Filters.text, get_phone_number, ),
             ],
             INSTAGRAM_USERNAME: [
-                CommandHandler('start', start),
+                CommandHandler('cancel', cancel),
                 MessageHandler(Filters.text, get_instagram_username, ),
             ],
             CLUBHOUSE_VERIFICATION_CODE: [
-                CommandHandler('start', start),
+                CommandHandler('cancel', cancel),
                 MessageHandler(Filters.text, get_clubhouse_verification_code, ),
             ],
 
@@ -164,7 +186,9 @@ def run_bot() -> None:
     )
 
     dispatcher.add_handler(conv_handler)
-
+    dispatcher.add_handler(
+        MessageHandler(Filters.regex('^' + Keyboard.update_instagram_account + '$'), instagram_account),
+    )
     # Start the Bot
     updater.start_polling()
 
