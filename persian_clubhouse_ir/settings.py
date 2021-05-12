@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'persian_clubhouse_ir.bot'
+    'persian_clubhouse_ir.bot',
 ]
 
 MIDDLEWARE = [
