@@ -6,8 +6,6 @@ import logging
 from typing import Dict
 
 import phonenumbers
-from clubhouse.clubhouse import Clubhouse
-from phonenumbers import carrier, number_type
 from telegram import ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import (
     Updater,
@@ -18,6 +16,7 @@ from telegram.ext import (
     CallbackContext,
 )
 
+from persian_clubhouse_ir.bot.clubhouse import Clubhouse
 from persian_clubhouse_ir.bot.const import Keyboard, MessageText
 from persian_clubhouse_ir.bot.models import Profile
 from persian_clubhouse_ir.settings import env, MY_CLUBHOUSE_USER_ID
