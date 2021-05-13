@@ -10,6 +10,9 @@ ENV TZ Asia/Tehran
 RUN mkdir /code
 WORKDIR /code
 
+RUN apt update -y
+RUN apt install -y libpq-dev python-dev gcc
+
 # install dependencies
 RUN pip install --upgrade pip
 RUN pip install pipenv
