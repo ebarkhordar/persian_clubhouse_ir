@@ -11,11 +11,11 @@ services:
   web:
     build: .
     container_name: persian_clubhouse_bot
-    command: bash -c "
-      python manage.py migrate
-      && python manage.py runserver 0.0.0.0:8000
-      && python manage.py start_bot
-      "
+#    command: bash -c "
+#      python manage.py migrate
+#      && python manage.py runserver 0.0.0.0:8000
+#      && python manage.py start_bot
+#      "
     ports:
       - "8000:8000"
     depends_on:

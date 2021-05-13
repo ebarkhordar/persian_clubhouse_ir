@@ -23,3 +23,7 @@ COPY Pipfile.lock /code/
 RUN pipenv install --system --deploy
 
 COPY . .
+
+CMD ["python", "manage.py", "migrate"]
+CMD ["gunicorn", "--bind", ":8000", "--workers", "3", "persian_clubhouse_ir.wsgi:application"]
+CMD ["python", "manage.py", "start_bot"]

@@ -9,7 +9,8 @@ django-environ = "0.4.5"
 python-telegram-bot = "13.5"
 psycopg2 = "2.8.6"
 phonenumbers = "8.12.22"
-requests = "*"
+requests = "2.25.1"
+gunicorn = "20.1.0"
 
 [dev-packages]
 
