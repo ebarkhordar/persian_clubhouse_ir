@@ -19,7 +19,7 @@ from telegram.ext import (
 from persian_clubhouse_ir.bot.clubhouse import Clubhouse
 from persian_clubhouse_ir.bot.const import Keyboard, MessageText
 from persian_clubhouse_ir.bot.models import Profile
-from persian_clubhouse_ir.settings import env, MY_CLUBHOUSE_USER_ID
+from persian_clubhouse_ir.settings import env, MY_CLUBHOUSE_USER_ID, TELEGRAM_BOT_TOKEN
 
 # Enable logging
 logging.basicConfig(
@@ -148,8 +148,9 @@ def cancel(update: Update, context: CallbackContext) -> int:
 
 
 def run_bot() -> None:
-    # Create the Updater and pass it your bot's token.
-    updater = Updater(env.str("TELEGRAM_BOT_TOKEN"))
+    # Create the Updater and pass it your Bot's token.
+    logger.info("Start telegram Bot")
+    updater = Updater(TELEGRAM_BOT_TOKEN)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
