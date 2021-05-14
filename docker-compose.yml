@@ -3,6 +3,7 @@ version: "3.9"
 services:
   db:
     image: postgres:13
+    restart: always
     container_name: persian_clubhouse_db
     volumes:
       - ./data/db:/var/lib/postgresql/data
@@ -11,11 +12,7 @@ services:
   web:
     build: .
     container_name: persian_clubhouse_bot
-#    command: bash -c "
-#      python manage.py migrate
-#      && python manage.py runserver 0.0.0.0:8000
-#      && python manage.py start_bot
-#      "
+    restart: always
     ports:
       - "8000:8000"
     depends_on:
