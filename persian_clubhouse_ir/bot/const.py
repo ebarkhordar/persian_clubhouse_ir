@@ -1,4 +1,6 @@
 class MessageText:
+    not_found = "متوجه نشدم :/\n" \
+                "چه کاری برات انجام بدم؟"
     not_valid_phone_number = "شماره تلفن همراه وارد شده معتبر نمی‌باشد.\n" \
                              ""
     cancel = "عملیات لغو شد!\n" \

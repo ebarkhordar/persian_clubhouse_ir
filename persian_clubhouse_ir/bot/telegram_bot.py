@@ -19,7 +19,7 @@ from telegram.ext import (
 from persian_clubhouse_ir.bot.clubhouse import Clubhouse
 from persian_clubhouse_ir.bot.const import Keyboard, MessageText
 from persian_clubhouse_ir.bot.models import Profile
-from persian_clubhouse_ir.settings import env, MY_CLUBHOUSE_USER_ID, TELEGRAM_BOT_TOKEN
+from persian_clubhouse_ir.settings import MY_CLUBHOUSE_USER_ID, TELEGRAM_BOT_TOKEN
 
 # Enable logging
 logging.basicConfig(
@@ -129,6 +129,13 @@ def about_us(update: Update, _: CallbackContext) -> int:
     return ConversationHandler.END
 
 
+def not_found(update: Update, _: CallbackContext) -> int:
+    update.message.reply_text(
+        MessageText.not_found
+    )
+    return ConversationHandler.END
+
+
 def done(update: Update, context: CallbackContext) -> int:
     user_data = context.user_data
     update.message.reply_text(MessageText.fallbacks,
@@ -154,29 +161,31 @@ def run_bot() -> None:
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
-
+    base_handlers = [
+        CommandHandler('cancel', cancel),
+        CommandHandler('start', start),
+        MessageHandler(Filters.text, not_found),
+    ]
     # Add conversation handler with the states CHOOSING, TYPING_CHOICE and TYPING_REPLY
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
-            CHOOSING: [
+            CHOOSING: base_handlers + [
                 MessageHandler(
                     Filters.regex('^' + Keyboard.update_instagram_account + '$'), instagram_account
                 ),
                 MessageHandler(
                     Filters.regex('^' + Keyboard.about_us + '$'), about_us
                 ),
+
             ],
-            PHONE_NUMBER: [
-                CommandHandler('cancel', cancel),
+            PHONE_NUMBER: base_handlers + [
                 MessageHandler(Filters.text, get_phone_number, ),
             ],
-            INSTAGRAM_USERNAME: [
-                CommandHandler('cancel', cancel),
+            INSTAGRAM_USERNAME: base_handlers + [
                 MessageHandler(Filters.text, get_instagram_username, ),
             ],
-            CLUBHOUSE_VERIFICATION_CODE: [
-                CommandHandler('cancel', cancel),
+            CLUBHOUSE_VERIFICATION_CODE: base_handlers + [
                 MessageHandler(Filters.text, get_clubhouse_verification_code, ),
             ],
 
